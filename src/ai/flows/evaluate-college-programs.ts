@@ -1,4 +1,4 @@
-'use server';
+import 'server-only';
 
 /**
  * @fileOverview An AI agent that evaluates college programs based on student data.
@@ -8,10 +8,10 @@
  * - EvaluateCollegeProgramsOutput - The return type for the evaluateCollegePrograms function.
  */
 
-import {ai} from '@/ai/genkit';
+import { getAI } from '@/ai/genkit';
 import {z} from 'genkit';
 
-const EvaluateCollegeProgramsInputSchema = z.object({
+export const EvaluateCollegeProgramsInputSchema = z.object({
   stream: z.string().describe('The student’s academic stream (e.g., Science, Commerce, Arts).'),
   examScores: z.string().describe('The student’s exam scores.'),
   budget: z.number().describe('The student’s budget for college in USD.'),
@@ -29,8 +29,10 @@ const ProgramEvaluationSchema = z.object({
   cons: z.string().describe('The cons of attending this program.'),
 });
 
-const EvaluateCollegeProgramsOutputSchema = z.array(ProgramEvaluationSchema).describe('A list of evaluated college programs.');
+export const EvaluateCollegeProgramsOutputSchema = z.array(ProgramEvaluationSchema).describe('A list of evaluated college programs.');
 export type EvaluateCollegeProgramsOutput = z.infer<typeof EvaluateCollegeProgramsOutputSchema>;
+
+const ai = getAI();
 
 export async function evaluateCollegePrograms(input: EvaluateCollegeProgramsInput): Promise<EvaluateCollegeProgramsOutput> {
   return evaluateCollegeProgramsFlow(input);

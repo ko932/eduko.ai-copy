@@ -3,10 +3,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  generateFormFillingGuide,
-  type GenerateFormFillingGuideOutput,
-} from '@/ai/flows/generate-form-filling-guide';
 import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -35,6 +31,23 @@ const formSchema = z.object({
   studentGradeLevel: z.string().min(2, 'Grade level is required.'),
 });
 
+type GenerateFormFillingGuideOutput = {
+  guide: string;
+};
+
+async function callGenerateFormGuide(values: Record<string, any>): Promise<GenerateFormFillingGuideOutput> {
+  const res = await fetch('/api/generate-form-filling-guide', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(values),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Failed to generate form guide');
+  }
+  return res.json();
+}
+
 export default function FormCentralPage() {
   const [result, setResult] = useState<GenerateFormFillingGuideOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -52,7 +65,7 @@ export default function FormCentralPage() {
     setIsLoading(true);
     setResult(null);
     try {
-      const response = await generateFormFillingGuide(values);
+      const response = await callGenerateFormGuide(values);
       setResult(response);
     } catch (error) {
       console.error(error);

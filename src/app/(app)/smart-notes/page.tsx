@@ -3,10 +3,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  generateSmartNotes,
-  type GenerateSmartNotesOutput,
-} from '@/ai/flows/generate-smart-notes';
 import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -38,6 +34,33 @@ const formSchema = z.object({
   gradeLevel: z.string().min(2, 'Grade level is required.'),
 });
 
+type GenerateSmartNotesOutput = {
+  summary: string;
+  mindMap: string;
+  flashcards: string;
+  mcqs: string;
+  fullNotes: string;
+  fillInTheBlanks: string;
+  conceptBreakdown: {
+    what: string;
+    why: string;
+    how: string;
+  };
+};
+
+async function callGenerateSmartNotes(values: Record<string, any>): Promise<GenerateSmartNotesOutput> {
+  const res = await fetch('/api/generate-smart-notes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(values),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Failed to generate smart notes');
+  }
+  return res.json();
+}
+
 export default function SmartNotesPage() {
   const [result, setResult] = useState<GenerateSmartNotesOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +79,7 @@ export default function SmartNotesPage() {
     setIsLoading(true);
     setResult(null);
     try {
-      const response = await generateSmartNotes(values);
+      const response = await callGenerateSmartNotes(values);
       setResult(response);
     } catch (error) {
       console.error(error);

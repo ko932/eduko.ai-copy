@@ -1,5 +1,5 @@
 
-'use server';
+import 'server-only';
 
 /**
  * @fileOverview This file defines the Genkit flow for generating a full project roadmap.
@@ -9,10 +9,10 @@
  * - GenerateProjectIdeasOutput - The return type for the generateProjectIdeas function.
  */
 
-import {ai} from '@/ai/genkit';
+import { getAI } from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GenerateProjectIdeasInputSchema = z.object({
+export const GenerateProjectIdeasInputSchema = z.object({
   educationType: z.string().describe("Student's education type (e.g., Engineering, Diploma)."),
   branch: z.string().optional().describe('Field of study if applicable (e.g., Computer Engineering).'),
   interests: z.array(z.string()).describe('A list of student interests (e.g., IoT, Web Development).'),
@@ -21,7 +21,7 @@ const GenerateProjectIdeasInputSchema = z.object({
 export type GenerateProjectIdeasInput = z.infer<typeof GenerateProjectIdeasInputSchema>;
 
 
-const GenerateProjectIdeasOutputSchema = z.object({
+export const GenerateProjectIdeasOutputSchema = z.object({
   summary: z.string().describe('A short, 3-4 line description of the project.'),
   requiredSkills: z.array(z.string()).describe('A list of skills required for the project.'),
   hardwareRequirements: z.array(z.string()).describe('A list of required hardware components, sensors, and modules. If none, return an empty array.'),
@@ -31,6 +31,8 @@ const GenerateProjectIdeasOutputSchema = z.object({
 });
 export type GenerateProjectIdeasOutput = z.infer<typeof GenerateProjectIdeasOutputSchema>;
 
+
+const ai = getAI();
 
 export async function generateProjectIdeas(input: GenerateProjectIdeasInput): Promise<GenerateProjectIdeasOutput> {
   return generateProjectIdeasFlow(input);

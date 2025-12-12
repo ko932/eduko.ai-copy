@@ -3,10 +3,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  evaluateCollegePrograms,
-  type EvaluateCollegeProgramsOutput,
-} from '@/ai/flows/evaluate-college-programs';
 import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -40,6 +36,29 @@ const formSchema = z.object({
   futureGoal: z.string().min(10, 'Future goal must be at least 10 characters.'),
 });
 
+type EvaluatedProgram = {
+  programName: string;
+  matchReason: string;
+  admissionProbability: string;
+  cutoffAnalysis: string;
+  pros: string;
+  cons: string;
+};
+type EvaluateCollegeProgramsOutput = EvaluatedProgram[];
+
+async function callEvaluateCollegePrograms(values: Record<string, any>): Promise<EvaluateCollegeProgramsOutput> {
+  const res = await fetch('/api/evaluate-college-programs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(values),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Failed to evaluate programs');
+  }
+  return res.json();
+}
+
 export default function ProgramEvaluatorPage() {
   const [result, setResult] = useState<EvaluateCollegeProgramsOutput | null>(
     null
@@ -62,7 +81,7 @@ export default function ProgramEvaluatorPage() {
     setIsLoading(true);
     setResult(null);
     try {
-      const response = await evaluateCollegePrograms(values);
+      const response = await callEvaluateCollegePrograms(values);
       setResult(response);
     } catch (error) {
       console.error(error);

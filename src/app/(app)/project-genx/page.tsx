@@ -4,11 +4,6 @@ import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  generateProjectIdeas,
-  type GenerateProjectIdeasInput,
-  type GenerateProjectIdeasOutput,
-} from '@/ai/flows/generate-project-ideas';
 import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -117,6 +112,33 @@ const ideaSchema = z.object({
 type BackgroundValues = z.infer<typeof backgroundSchema>;
 type IdeaValues = z.infer<typeof ideaSchema>;
 
+type GenerateProjectIdeasOutput = {
+  summary: string;
+  requiredSkills: string[];
+  hardwareRequirements: string[];
+  softwareRequirements: string[];
+  buildPlan: string[];
+  architectureDiagram: string;
+};
+
+async function callGenerateProjectIdeas(payload: {
+  educationType: string;
+  branch?: string;
+  interests: string[];
+  projectIdea: string;
+}): Promise<GenerateProjectIdeasOutput> {
+  const res = await fetch('/api/generate-project-ideas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Failed to generate project roadmap');
+  }
+  return res.json();
+}
+
 export default function ProjectGenXPage() {
   const [step, setStep] = useState(1);
   const [backgroundData, setBackgroundData] = useState<BackgroundValues | null>(null);
@@ -152,14 +174,14 @@ export default function ProjectGenXPage() {
     setResult(null);
     setStep(3);
 
-    const input: GenerateProjectIdeasInput = {
+    const input = {
       ...backgroundData,
       projectIdea: values.projectIdea,
       branch: backgroundData.branch || '',
     };
 
     try {
-      const response = await generateProjectIdeas(input);
+      const response = await callGenerateProjectIdeas(input);
       setResult(response);
     } catch (error) {
       console.error(error);

@@ -3,10 +3,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  generateTimetable,
-  type GenerateTimetableOutput,
-} from '@/ai/flows/generate-timetable';
 import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -41,6 +37,24 @@ const formSchema = z.object({
   lifestyleSchedule: z.string().min(10, 'Please describe your daily routine.'),
 });
 
+type GenerateTimetableOutput = {
+  weeklyTimetable: string;
+  warnings: string;
+};
+
+async function callGenerateTimetable(values: Record<string, any>): Promise<GenerateTimetableOutput> {
+  const res = await fetch('/api/generate-timetable', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(values),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Failed to generate timetable');
+  }
+  return res.json();
+}
+
 export default function TimetablePage() {
   const [result, setResult] = useState<GenerateTimetableOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +76,7 @@ export default function TimetablePage() {
     setIsLoading(true);
     setResult(null);
     try {
-      const response = await generateTimetable({
+      const response = await callGenerateTimetable({
         ...values,
         weakAreas: values.weakAreas || "",
         strongAreas: values.strongAreas || "",

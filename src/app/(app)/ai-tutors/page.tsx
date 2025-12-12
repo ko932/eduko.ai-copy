@@ -7,11 +7,16 @@ import { BrainCircuit, Mic, Send, ThumbsUp, ThumbsDown, Volume2 } from 'lucide-r
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import {
-  conversationalChat,
-  type ConversationalChatInput,
-} from '@/ai/flows/conversational-chat';
-import { generateSpeech } from '@/ai/flows/generate-speech';
+type ConversationalChatInput = {
+  persona: string;
+  history: { role: 'user' | 'model'; content: { text: string }[] }[];
+  message: string;
+};
+
+type ConversationalChatOutput = { reply: string };
+
+type GenerateSpeechInput = { text: string; voice?: string };
+type GenerateSpeechOutput = { audioDataUri: string };
 
 declare global {
   interface Window {
@@ -105,6 +110,32 @@ export default function AiTutorsPage() {
     }
   };
 
+  const callConversationalChat = async (input: ConversationalChatInput): Promise<ConversationalChatOutput> => {
+    const res = await fetch('/api/conversational-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Failed to reach Ko AI');
+    }
+    return res.json();
+  };
+
+  const callGenerateSpeech = async (input: GenerateSpeechInput): Promise<GenerateSpeechOutput> => {
+    const res = await fetch('/api/generate-speech', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Failed to generate speech');
+    }
+    return res.json();
+  };
+
   const handleReadAloud = async (message: Message) => {
     if (playingAudioId === message.id) {
       stopAudio();
@@ -117,7 +148,7 @@ export default function AiTutorsPage() {
 
     setPlayingAudioId(message.id);
     try {
-      const speechResult = await generateSpeech({ text: message.content, voice: 'Arcturus' });
+      const speechResult = await callGenerateSpeech({ text: message.content, voice: 'Arcturus' });
       const audio = new Audio(speechResult.audioDataUri);
       audioRef.current = audio;
       audio.play();
@@ -166,7 +197,7 @@ export default function AiTutorsPage() {
         content: [{ text: m.content }],
       }));
 
-      const result = await conversationalChat({
+      const result = await callConversationalChat({
         persona: 'a witty and slightly impatient AI assistant named Ko',
         history: chatHistory,
         message: currentInput,

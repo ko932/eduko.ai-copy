@@ -1,4 +1,4 @@
-'use server';
+import 'server-only';
 
 /**
  * @fileOverview Smart Notes Generator AI agent.
@@ -8,17 +8,17 @@
  * - GenerateSmartNotesOutput - The return type for the generateSmartNotes function.
  */
 
-import {ai} from '@/ai/genkit';
+import { getAI } from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GenerateSmartNotesInputSchema = z.object({
+export const GenerateSmartNotesInputSchema = z.object({
   rawText: z.string().describe('The raw text input to generate notes from.'),
   topic: z.string().describe('The topic of the raw text.'),
   gradeLevel: z.string().describe("The student's grade level."),
 });
 export type GenerateSmartNotesInput = z.infer<typeof GenerateSmartNotesInputSchema>;
 
-const GenerateSmartNotesOutputSchema = z.object({
+export const GenerateSmartNotesOutputSchema = z.object({
   summary: z.string().describe('A short summary of the raw text.'),
   mindMap: z
     .string()
@@ -46,6 +46,8 @@ const GenerateSmartNotesOutputSchema = z.object({
     .describe('A breakdown of the concept into What, Why, and How.'),
 });
 export type GenerateSmartNotesOutput = z.infer<typeof GenerateSmartNotesOutputSchema>;
+
+const ai = getAI();
 
 export async function generateSmartNotes(input: GenerateSmartNotesInput): Promise<GenerateSmartNotesOutput> {
   return generateSmartNotesFlow(input);

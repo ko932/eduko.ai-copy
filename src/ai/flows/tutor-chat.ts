@@ -10,7 +10,7 @@
  * - TutorChatOutput - The output schema for the tutorChat function.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAI } from '@/ai/genkit';
 import { z } from 'genkit';
 
 // Schemas based on the provided JSON output format
@@ -48,6 +48,8 @@ export type TutorChatInput = z.infer<typeof TutorChatInputSchema>;
 
 // This tool simulates fetching data from various backend services (Vector DB, student profile DB).
 // This replaces the previous, simpler `getStudentContext` tool.
+const ai = getAI();
+
 const getFullStudentRAGContext = ai.defineTool(
   {
     name: 'getFullStudentRAGContext',

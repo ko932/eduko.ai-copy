@@ -1,4 +1,4 @@
-'use server';
+import 'server-only';
 
 /**
  * @fileOverview A conversational AI agent that can adopt different personas.
@@ -8,10 +8,10 @@
  * - ConversationalChatOutput - The return type for the conversationalChat function.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAI } from '@/ai/genkit';
 import { z } from 'genkit';
 
-const ConversationalChatInputSchema = z.object({
+export const ConversationalChatInputSchema = z.object({
   persona: z.string().describe('The persona the AI should adopt for the conversation (e.g., "a witty and slightly impatient AI assistant").'),
   history: z.array(z.object({
     role: z.enum(['user', 'model']),
@@ -30,6 +30,7 @@ export type ConversationalChatOutput = z.infer<typeof ConversationalChatOutputSc
 
 
 export async function conversationalChat(input: ConversationalChatInput): Promise<ConversationalChatOutput> {
+  const ai = getAI();
   const { persona, history, message } = input;
 
   const { text } = await ai.generate({

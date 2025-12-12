@@ -1,5 +1,5 @@
 // src/ai/flows/generate-timetable.ts
-'use server';
+import 'server-only';
 /**
  * @fileOverview A flow for generating a personalized weekly timetable for students.
  *
@@ -8,10 +8,10 @@
  * - GenerateTimetableOutput - The return type for the generateTimetable function.
  */
 
-import {ai} from '@/ai/genkit';
+import { getAI } from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GenerateTimetableInputSchema = z.object({
+export const GenerateTimetableInputSchema = z.object({
   subjects: z
     .string()
     .describe("List of subjects the student is studying, separated by commas."),
@@ -33,7 +33,7 @@ const GenerateTimetableInputSchema = z.object({
 });
 export type GenerateTimetableInput = z.infer<typeof GenerateTimetableInputSchema>;
 
-const GenerateTimetableOutputSchema = z.object({
+export const GenerateTimetableOutputSchema = z.object({
   weeklyTimetable: z
     .string()
     .describe("A detailed weekly timetable with day-wise study blocks and subject allocation."),
@@ -42,6 +42,8 @@ const GenerateTimetableOutputSchema = z.object({
     .describe("Any warnings or suggestions regarding potential overloading or imbalances in the timetable."),
 });
 export type GenerateTimetableOutput = z.infer<typeof GenerateTimetableOutputSchema>;
+
+const ai = getAI();
 
 export async function generateTimetable(input: GenerateTimetableInput): Promise<GenerateTimetableOutput> {
   return generateTimetableFlow(input);

@@ -1,4 +1,4 @@
-'use server';
+import 'server-only';
 
 /**
  * @fileOverview A Genkit flow for generating speech from text using Google's TTS model.
@@ -8,14 +8,14 @@
  * - GenerateSpeechOutput - The return type for the generateSpeech function.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAI } from '@/ai/genkit';
 import { z } from 'genkit';
 import wav from 'wav';
 import { googleAI } from '@genkit-ai/google-genai';
 
 const VoiceEnum = z.enum(['Algenib', 'Arcturus', 'Canopus', 'Antares', 'Altair', 'Achernar', 'Spica', 'Sirius']);
 
-const GenerateSpeechInputSchema = z.object({
+export const GenerateSpeechInputSchema = z.object({
   text: z.string().describe('The text to be converted to speech.'),
   voice: VoiceEnum.optional().default('Algenib').describe('The prebuilt voice to use for the speech.'),
 });
@@ -26,6 +26,8 @@ const GenerateSpeechOutputSchema = z.object({
 });
 export type GenerateSpeechOutput = z.infer<typeof GenerateSpeechOutputSchema>;
 
+
+const ai = getAI();
 
 export async function generateSpeech(input: GenerateSpeechInput): Promise<GenerateSpeechOutput> {
   return generateSpeechFlow(input);
